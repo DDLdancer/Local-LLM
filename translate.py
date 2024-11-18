@@ -1,4 +1,5 @@
 from llama_cpp import Llama
+from tqdm import tqdm
 
 MAX_LENGTH=512
 MAX_TOKENS=512
@@ -7,7 +8,7 @@ PRINT=False
 
 ENG_DELIMITERS=['.', '?', '!', '\n']
 JP_DELIMITERS=['\n', '！', '？', '、', '。']
-MODEL_PATH="/home/youchengzhang/llm/qwen2.5-32b-instruct-q4_k_m/model-qwen2.5-32b-instruct-q4_k_m-00001-of-00005.gguf"
+MODEL_PATH="/home/youchengzhang/llm/model-qwen2.5-32b-instruct-q4_k_m/qwen2.5-32b-instruct-q4_k_m-00001-of-00005.gguf"
 STOP="翻译完成"
 
 # 初始化LLM模型
@@ -48,7 +49,7 @@ def translate_text(text):
     translated_parts = []
     
     # 逐一翻译每部分
-    for part, delim in parts:
+    for part, delim in tqdm(parts):
         prompt = f"Q: 翻译如下文本到中文，翻译完成后输出“{STOP}”: {part} A: 以下是文本的中文翻译: "
         result = llm(prompt, max_tokens=MAX_TOKENS, stop=STOP)
         translated_text = result["choices"][0]["text"].strip()
