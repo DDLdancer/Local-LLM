@@ -3,6 +3,7 @@ from llama_cpp import Llama
 MAX_LENGTH=512
 MAX_TOKENS=512
 N_CTX=1024
+PRINT=False
 
 ENG_DELIMITERS=['.', '?', '!', '\n']
 JP_DELIMITERS=['\n', '！', '？', '、', '。']
@@ -48,13 +49,14 @@ def translate_text(text):
     
     # 逐一翻译每部分
     for part, delim in parts:
-        print(part)
         prompt = f"Q: 翻译如下文本到中文，翻译完成后输出“{STOP}”: {part} A: 以下是文本的中文翻译: "
         result = llm(prompt, max_tokens=MAX_TOKENS, stop=STOP)
         translated_text = result["choices"][0]["text"].strip()
         if delim == '\n':
             translated_text += '\n'  # 如果使用的分隔符是换行符，则在翻译文本后添加换行符
-        print(translated_text)
+        if PRINT:
+            print(part)
+            print(translated_text)
         translated_parts.append(translated_text)
         
     # 返回拼接后的翻译文本

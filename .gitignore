@@ -1,3 +1,5 @@
 *.txt
 llama.cpp
 model-*
+chat-ui
+node*
