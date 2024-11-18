@@ -1,15 +1,19 @@
+import argparse
 from llama_cpp import Llama
 from tqdm import tqdm
 
 MAX_LENGTH=512
 MAX_TOKENS=512
 N_CTX=1024
-PRINT=False
 
 ENG_DELIMITERS=['.', '?', '!', '\n']
 JP_DELIMITERS=['\n', '！', '？', '、', '。']
 MODEL_PATH="/home/youchengzhang/llm/model-qwen2.5-32b-instruct-q4_k_m/qwen2.5-32b-instruct-q4_k_m-00001-of-00005.gguf"
 STOP="翻译完成"
+
+parser = argparse.ArgumentParser(description="Translate text from English to Chinese.")
+parser.add_argument("-v", "--verbose", action="store_true", help="Output translated text while processing.")
+args = parser.parse_args()
 
 # 初始化LLM模型
 llm = Llama(
@@ -17,6 +21,7 @@ llm = Llama(
     n_gpu_layers=-1,
     flash_attn=True,
     n_ctx=N_CTX,
+    verbose=args.verbose,
 )
 
 def split_text_near_end_of_sentence(text, max_length=MAX_LENGTH, delimiters=JP_DELIMITERS):
@@ -43,7 +48,7 @@ def split_text_near_end_of_sentence(text, max_length=MAX_LENGTH, delimiters=JP_D
         text = text[end_of_sentence:]
     return parts
 
-def translate_text(text):
+def translate_text(text, verbose=False):
     # 将文本分割为适合模型的大小
     parts = split_text_near_end_of_sentence(text)
     translated_parts = []
@@ -55,7 +60,7 @@ def translate_text(text):
         translated_text = result["choices"][0]["text"].strip()
         if delim == '\n':
             translated_text += '\n'  # 如果使用的分隔符是换行符，则在翻译文本后添加换行符
-        if PRINT:
+        if verbose:
             print(part)
             print(translated_text)
         translated_parts.append(translated_text)
@@ -68,7 +73,7 @@ with open('input_article.txt', 'r', encoding='utf-8') as file:
     content = file.read()
 
 # 翻译文本
-translated_content = translate_text(content)
+translated_content = translate_text(content, args.verbose)
 
 # 保存翻译结果
 with open('translated_article.txt', 'w', encoding='utf-8') as file:
