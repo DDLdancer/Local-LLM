@@ -6,8 +6,8 @@ MAX_LENGTH=512
 MAX_TOKENS=512
 N_CTX=1024
 
-ENG_DELIMITERS=['.', '?', '!', '\n']
-JP_DELIMITERS=['\n', '！', '？', '、', '。']
+ENG_DELIMITERS=['\n', '.', '?', '!']
+JP_DELIMITERS=['\n', '！', '？', '。', '、']
 MODEL_PATH="/home/youchengzhang/llm/model-qwen2.5-32b-instruct-q4_k_m/qwen2.5-32b-instruct-q4_k_m-00001-of-00005.gguf"
 STOP="翻译完成"
 
@@ -24,33 +24,34 @@ llm = Llama(
     verbose=args.verbose,
 )
 
-def split_text_near_end_of_sentence(text, max_length=MAX_LENGTH, delimiters=JP_DELIMITERS):
+def split_text_with_priority_delimiters(text, max_length=MAX_LENGTH, delimiters=JP_DELIMITERS):
     parts = []
     while text:
         if len(text) <= max_length:
             parts.append((text, ''))
             break
-        # 查找最近的句子结束符位置，并记录分隔符
-        end_of_sentence = -1
+        # 查找基于优先级的最合适的分割点
+        best_position = -1
         delimiter_used = ''
         for delim in delimiters:
             position = text.rfind(delim, 0, max_length)
-            if position > end_of_sentence:
-                end_of_sentence = position
+            if position != -1:
+                best_position = position
                 delimiter_used = delim
-        
-        if end_of_sentence == -1:  # 如果没有找到，使用最大长度
-            end_of_sentence = max_length
-            parts.append((text[:end_of_sentence], ''))
+                break  # 找到最高优先级的标点后停止搜索
+
+        if best_position == -1:  # 如果没有找到任何标点符号，使用最大长度
+            best_position = max_length - 1
+            parts.append((text[:best_position + 1], ''))
         else:
-            end_of_sentence += 1  # 包括结束符本身
-            parts.append((text[:end_of_sentence], delimiter_used))
-        text = text[end_of_sentence:]
+            best_position += 1  # 包括分隔符本身
+            parts.append((text[:best_position], delimiter_used))
+        text = text[best_position:]
     return parts
 
 def translate_text(text, verbose=False):
     # 将文本分割为适合模型的大小
-    parts = split_text_near_end_of_sentence(text)
+    parts = split_text_with_priority_delimiters(text)
     translated_parts = []
     
     # 逐一翻译每部分
