@@ -2,14 +2,16 @@ import argparse
 from llama_cpp import Llama
 from tqdm import tqdm
 
-MAX_LENGTH=512
-MAX_TOKENS=512
-N_CTX=1024
+MAX_LENGTH = 512
+MAX_TOKENS = 512
+N_CTX = 1024
+ENABLE_FLASH_ATTN = False
+N_GPU_LAYERS = -1  # -1 means offloading all layers to GPU
 
-ENG_DELIMITERS=['\n', '.', '?', '!']
-JP_DELIMITERS=['\n', '！', '？', '。', '、']
-MODEL_PATH="/home/youchengzhang/llm/model-qwen2.5-32b-instruct-q4_k_m/qwen2.5-32b-instruct-q4_k_m-00001-of-00005.gguf"
-STOP="翻译完成"
+ENG_DELIMITERS = ['\n', '.', '?', '!']
+JP_DELIMITERS = ['\n', '！', '？', '。', '、']
+MODEL_PATH = "/home/youchengzhang/llm/model-qwen2.5-32b-instruct-q4_k_m/qwen2.5-32b-instruct-q4_k_m-00001-of-00005.gguf"
+STOP = "翻译完成"
 
 parser = argparse.ArgumentParser(description="Translate text from English to Chinese.")
 parser.add_argument("-v", "--verbose", action="store_true", help="Output translated text while processing.")
@@ -18,11 +20,12 @@ args = parser.parse_args()
 # 初始化LLM模型
 llm = Llama(
     model_path=MODEL_PATH,
-    n_gpu_layers=-1,
-    flash_attn=True,
+    n_gpu_layers=N_GPU_LAYERS,
+    flash_attn=ENABLE_FLASH_ATTN,
     n_ctx=N_CTX,
     verbose=args.verbose,
 )
+
 
 def split_text_with_priority_delimiters(text, max_length=MAX_LENGTH, delimiters=JP_DELIMITERS):
     parts = []
@@ -49,11 +52,12 @@ def split_text_with_priority_delimiters(text, max_length=MAX_LENGTH, delimiters=
         text = text[best_position:]
     return parts
 
+
 def translate_text(text, verbose=False):
     # 将文本分割为适合模型的大小
     parts = split_text_with_priority_delimiters(text)
     translated_parts = []
-    
+
     # 逐一翻译每部分
     for part, delim in tqdm(parts):
         prompt = f"Q: 翻译如下文本到中文，翻译完成后输出“{STOP}”: {part} A: 以下是文本的中文翻译: "
@@ -65,9 +69,10 @@ def translate_text(text, verbose=False):
             print(part)
             print(translated_text)
         translated_parts.append(translated_text)
-        
+
     # 返回拼接后的翻译文本
     return "".join(translated_parts)
+
 
 # 读取文本文件
 with open('input_article.txt', 'r', encoding='utf-8') as file:
