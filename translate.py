@@ -2,9 +2,9 @@ import argparse
 from llama_cpp import Llama
 from tqdm import tqdm
 
-MAX_LENGTH = 512
-MAX_TOKENS = 512
-N_CTX = 1024
+MAX_LENGTH = 1024
+MAX_TOKENS = 0  # 0 means depends on n_ctx
+N_CTX = 4096  # 0 means using the model's default context length
 ENABLE_FLASH_ATTN = False
 N_GPU_LAYERS = -1  # -1 means offloading all layers to GPU
 
