@@ -3,6 +3,7 @@
 import time
 import random
 import argparse
+import re
 
 from pixivpy3 import AppPixivAPI, PixivError
 
@@ -12,10 +13,15 @@ SLEEP_MIN = 1
 SLEEP_MAX = 2
 
 
-def remove_newpage_tags(text):
+def remove_extra(text):
+    # Pattern to match [[rb:TEXT1>TEXT2]]
+    pattern = r'\[\[rb:(.*?)\s*>\s*(.*?)\]\]'
+    # Replace the whole pattern with TEXT1(TEXT2)
+    text = re.sub(pattern, r'\1(\2)', text)
+
     # Remove all occurrences of '[newpage]'
-    cleaned_text = text.replace('[newpage]', '')
-    return cleaned_text
+    text = text.replace('[newpage]', '')
+    return text
 
 
 def get_novel(aapi, novel_id):
@@ -24,7 +30,7 @@ def get_novel(aapi, novel_id):
 
     json_result = aapi.novel_text(novel_id)
 
-    return novel.title + "\n\n" + json_result.novel_text
+    return remove_extra(novel.title + "\n\n" + json_result.novel_text)
 
 
 def get_series(aapi, series_id):
@@ -43,7 +49,7 @@ def get_series(aapi, series_id):
             time.sleep(random.uniform(SLEEP_MIN, SLEEP_MAX))
         next_qs = aapi.parse_qs(json_result.next_url)
 
-    return remove_newpage_tags("\n\n\n".join(texts))
+    return "\n\n\n".join(texts)
 
 
 def main():
