@@ -1,5 +1,5 @@
 *.txt
 llama.cpp
 model-*
-chat-ui
-node*
+*.secret
+pixiv_auth.py
