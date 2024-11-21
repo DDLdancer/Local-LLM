@@ -11,6 +11,8 @@ N_GPU_LAYERS = -1  # -1 means offloading all layers to GPU
 ENG_DELIMITERS = ['\n', '.', '?', '!']
 JP_DELIMITERS = ['\n', '！', '？', '。', '、']
 MODEL_PATH = "/home/youchengzhang/llm/model-qwen2.5-32b-instruct-q4_k_m/qwen2.5-32b-instruct-q4_k_m-00001-of-00005.gguf"
+INPUT_PATH = "input.txt"
+OUTPUT_PATH = "output.txt"
 STOP = "翻译完成"
 
 parser = argparse.ArgumentParser(description="Translate text from English to Chinese.")
@@ -75,12 +77,12 @@ def translate_text(text, verbose=False):
 
 
 # 读取文本文件
-with open('input_article.txt', 'r', encoding='utf-8') as file:
+with open(INPUT_PATH, 'r', encoding='utf-8') as file:
     content = file.read()
 
 # 翻译文本
 translated_content = translate_text(content, args.verbose)
 
 # 保存翻译结果
-with open('translated_article.txt', 'w', encoding='utf-8') as file:
+with open(OUTPUT_PATH, 'w', encoding='utf-8') as file:
     file.write(translated_content)
