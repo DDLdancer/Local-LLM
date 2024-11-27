@@ -4,7 +4,8 @@ import argparse
 from llama_cpp import Llama
 from tqdm import tqdm
 
-MAX_LENGTH = 1024
+ENG_MAX_LENGTH = 4096
+JP_MAX_LENGTH = 1024
 MAX_TOKENS = 0  # 0 means depends on n_ctx
 N_CTX = 4096  # 0 means using the model's default context length
 ENABLE_FLASH_ATTN = False
@@ -19,6 +20,7 @@ STOP = "翻译完成"
 
 parser = argparse.ArgumentParser(description="Translate text from English to Chinese.")
 parser.add_argument("-v", "--verbose", action="store_true", help="Output translated text while processing.")
+parser.add_argument("-j", "--japanese", action="store_true", help="target text is Japanese")
 args = parser.parse_args()
 
 # 初始化LLM模型
@@ -31,7 +33,7 @@ llm = Llama(
 )
 
 
-def split_text_with_priority_delimiters(text, max_length=MAX_LENGTH, delimiters=JP_DELIMITERS):
+def split_text_with_priority_delimiters(text, max_length, delimiters):
     parts = []
     while text:
         if len(text) <= max_length:
@@ -57,9 +59,9 @@ def split_text_with_priority_delimiters(text, max_length=MAX_LENGTH, delimiters=
     return parts
 
 
-def translate_text(text, verbose=False):
+def translate_text(text, max_length, delimiters, verbose):
     # 将文本分割为适合模型的大小
-    parts = split_text_with_priority_delimiters(text)
+    parts = split_text_with_priority_delimiters(text, max_length, delimiters)
     translated_parts = []
 
     # 逐一翻译每部分
@@ -83,7 +85,11 @@ with open(INPUT_PATH, 'r', encoding='utf-8') as file:
     content = file.read()
 
 # 翻译文本
-translated_content = translate_text(content, args.verbose)
+if args.japanese:
+    translated_content = translate_text(content, JP_MAX_LENGTH, JP_DELIMITERS, args.verbose)
+else:
+    translated_content = translate_text(content, ENG_MAX_LENGTH, ENG_DELIMITERS, args.verbose)
+
 
 # 保存翻译结果
 with open(OUTPUT_PATH, 'w', encoding='utf-8') as file:
